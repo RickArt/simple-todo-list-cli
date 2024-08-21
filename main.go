@@ -17,6 +17,7 @@ const (
 )
 
 var fileName string = "list.csv"
+
 var optionsMessage string = `
 Select an option:
   1.- Print list
@@ -35,10 +36,7 @@ func main() {
 
 	reader := csv.NewReader(file)
 
-	tasks, err := reader.ReadAll()
-	if err != nil {
-		log.Fatal(err)
-	}
+	taskList := loadTaskList(reader)
 
 	for {
 		fmt.Println(optionsMessage)
@@ -47,8 +45,8 @@ func main() {
 			log.Println(err)
 		}
 		switch userOption {
-		case 1:
-			printTasks(tasks)
+		case PRINT_OPTION:
+			printTasks(taskList)
 		case EXIT_OPTION:
 			return
 		}
@@ -76,8 +74,27 @@ func isValidInput(input int) bool {
 	return input > 0 && input <= MAX_OPTION
 }
 
-func printTasks(tasks [][]string) {
-	for _, task := range tasks {
-		fmt.Println(task)
+func printTasks(taskList []Task) {
+	for _, task := range taskList {
+		fmt.Printf("#%v - %v - %v\n", task.Id, task.Description, task.getDoneSymbol())
 	}
+}
+
+func loadTaskList(reader *csv.Reader) (taskList []Task) {
+	records, err := reader.ReadAll()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, record := range records {
+		id, _ := strconv.Atoi(record[0])
+		done, _ := strconv.ParseBool(record[2])
+		data := Task{
+			Id:          id,
+			Description: record[1],
+			Done:        done,
+		}
+		taskList = append(taskList, data)
+	}
+	return taskList
 }
