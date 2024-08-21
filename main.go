@@ -36,24 +36,30 @@ func main() {
 
 	reader := csv.NewReader(file)
 
-	taskList := loadTaskList(reader)
+	taskMap := loadTaskMap(reader)
 
 	for {
 		fmt.Println(optionsMessage)
-		userOption, err := readUserInput()
+		userOption, err := readUserOption()
 		if err != nil {
 			log.Println(err)
 		}
 		switch userOption {
 		case PRINT_OPTION:
-			printTasks(taskList)
+			printTasks(taskMap)
+		case REMOVE_OPTION:
+			taskIdToDelete, err := readTaskIdToDelete()
+			if err != nil {
+				log.Fatal(err)
+			}
+			delete(taskMap, taskIdToDelete)
 		case EXIT_OPTION:
 			return
 		}
 	}
 }
 
-func readUserInput() (int, error) {
+func readUserOption() (int, error) {
 	var input string
 	_, err := fmt.Scanln(&input)
 
@@ -62,7 +68,7 @@ func readUserInput() (int, error) {
 	}
 
 	parsedInput, err := strconv.Atoi(input)
-	if err != nil || !isValidInput(parsedInput) {
+	if err != nil || !isValidOption(parsedInput) {
 		log.Println("Invalid option")
 		return 0, nil
 	}
@@ -70,17 +76,18 @@ func readUserInput() (int, error) {
 	return parsedInput, nil
 }
 
-func isValidInput(input int) bool {
+func isValidOption(input int) bool {
 	return input > 0 && input <= MAX_OPTION
 }
 
-func printTasks(taskList []Task) {
-	for _, task := range taskList {
+func printTasks(taskMap map[int]Task) {
+	for _, task := range taskMap {
 		fmt.Printf("#%v - %v - %v\n", task.Id, task.Description, task.getDoneSymbol())
 	}
 }
 
-func loadTaskList(reader *csv.Reader) (taskList []Task) {
+func loadTaskMap(reader *csv.Reader) (taskMap map[int]Task) {
+	taskMap = make(map[int]Task)
 	records, err := reader.ReadAll()
 	if err != nil {
 		log.Fatal(err)
@@ -94,7 +101,25 @@ func loadTaskList(reader *csv.Reader) (taskList []Task) {
 			Description: record[1],
 			Done:        done,
 		}
-		taskList = append(taskList, data)
+		taskMap[id] = data
 	}
-	return taskList
+	return taskMap
+}
+
+func readTaskIdToDelete() (int, error) {
+	fmt.Println("Select the id number to delete the task")
+	var input string
+	_, err := fmt.Scanln(&input)
+
+	if err != nil {
+		return 0, err
+	}
+
+	parsedInput, err := strconv.Atoi(input)
+	if err != nil {
+		log.Println("Invalid option")
+		return 0, nil
+	}
+
+	return parsedInput, nil
 }
