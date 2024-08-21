@@ -6,20 +6,9 @@ import (
 )
 
 func OpenFile(path string) *os.File {
-	file, err := os.Open(fileName)
+	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return CreateFile(path)
-		}
 		log.Fatal("Error reading the file: ", err)
-	}
-	return file
-}
-
-func CreateFile(path string) *os.File {
-	file, err := os.Create(path)
-	if err != nil {
-		log.Fatal("Error creating the file: ", err)
 	}
 	return file
 }
